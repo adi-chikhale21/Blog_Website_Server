@@ -29,6 +29,7 @@ app.use(morgan("common"));
 app.use(cookieParser());
 
 let origin = "http://localhost:5173";
+console.log(process.env.NODE_ENV);
 if (process.env.NODE_ENV === "production") {
   origin = process.env.CORS_ORIGIN;
 }

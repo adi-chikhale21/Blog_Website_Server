@@ -20,7 +20,20 @@ const signupController = async (req, res) => {
     const hashpassword = await bcrypt.hash(password, 10);
     const newUser = await User.create({ name, email, password: hashpassword });
 
-    return res.send(success(201, "New user is created"));
+    const accessToken = generateAccessToken({
+      _id: newUser._id,
+    });
+
+    const refreshToken = generateRefreshToken({
+      _id: newUser._id,
+    });
+
+    res.cookie("jwt", refreshToken, {
+      httpOnly: true,
+      secure: true,
+    });
+
+    return res.send(success(201, { accessToken }));
   } catch (e) {
     return res.send(error(500, e.message));
   }
