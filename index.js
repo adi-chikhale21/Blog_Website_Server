@@ -30,7 +30,7 @@ app.use(cookieParser());
 app.use(
   cors({
     credentials: true,
-    origin: "https://blog-website-client-s2or.onrender.com",
+    origin: process.env.CORS_ORIGIN,
   })
 );
 
