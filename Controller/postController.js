@@ -4,6 +4,7 @@ const cloudinary = require("cloudinary").v2;
 const { mapPostOutput } = require("../utils/utils");
 
 const { success, error } = require("../utils/responseWrapper");
+const Comment = require("../Model/comment");
 
 const createPostController = async (req, res) => {
   try {
@@ -66,12 +67,8 @@ const likeOrUnlike = async (req, res) => {
 
 const updatePostController = async (req, res) => {
   try {
-    const { postId, description } = req.body;
+    const { postId, description, postImg, title } = req.body;
     const currUser = req._id;
-
-    if (!description) {
-      return res.send(error(400, "All field are required"));
-    }
 
     const post = await Post.findById(postId);
     if (!post) {
@@ -82,8 +79,23 @@ const updatePostController = async (req, res) => {
       return res.send(error(404, "Only owner can update post"));
     }
 
+    if (title) {
+      post.title = title;
+    }
+
     if (description) {
       post.description = description;
+    }
+
+    if (postImg) {
+      const cloudImg = await cloudinary.uploader.upload(postImg, {
+        folder: "postImg",
+      });
+
+      post.image = {
+        url: cloudImg.secure_url,
+        publicId: cloudImg.public_id,
+      };
     }
 
     await post.save();
@@ -100,6 +112,7 @@ const deletePost = async (req, res) => {
 
     const post = await Post.findById(postId);
     const user = await User.findById(currUser);
+    const allComment = await Comment.find();
 
     if (!post) {
       return res.send(error(404, "Post not found"));
@@ -111,6 +124,8 @@ const deletePost = async (req, res) => {
 
     const index = user.posts.indexOf(postId);
     user.posts.splice(index, 1);
+
+    await Comment.deleteMany({ _id: { $in: post.comments } });
 
     await user.save();
     await post.deleteOne();

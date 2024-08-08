@@ -21,9 +21,11 @@ const createCommentController = async (req, res) => {
       owner,
       comment,
       name: user.name,
+      post: postId,
     });
 
     post.comments.push(review._id);
+    console.log(review);
     await post.save();
 
     res.send(success(201, { review, post }));

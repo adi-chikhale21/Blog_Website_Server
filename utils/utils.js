@@ -18,6 +18,7 @@ const mapPostOutput = (post, userId) => {
     comments: (post.comments || []).map((comment) => ({
       _id: comment._id,
       comment: comment.comment,
+      post: post._id,
       owner: comment.owner
         ? {
             _id: comment.owner._id,

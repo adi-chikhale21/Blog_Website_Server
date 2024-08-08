@@ -56,34 +56,35 @@ const deletemyProfile = async (req, res) => {
 
     //delete likes from post
     const allposts = await Post.find();
-    console.log(allposts);
-
-    allposts.forEach(async (post) => {
+    for (const post of allposts) {
       const index = post.likes.indexOf(userId);
-      post.likes.splice(index, 1);
-
-      await post.save();
-    });
+      if (index > -1) {
+        post.likes.splice(index, 1);
+        await post.save(); 
+      }
+    }
 
     //delete Comment
     await Comment.deleteMany({
       owner: userId,
     });
 
-    //delete Comment from posts undone remember
-    // allposts.forEach(async (post) => {
-    //   const index = post.comments.indexOf(userId);
-    //   post.likes.splice(index, 1);
-
-    //   await post.save();
-    // });
+    // delete Comment from posts undone remember
+    for (const post of allposts) {
+      post.comments = post.comments.filter((comment) => {
+        return comment.owner && comment.owner.toString() !== userId.toString();
+      });
+      await post.save();
+    }
 
     await user.deleteOne();
 
+    console.log("Clearing cookie...");
     res.clearCookie("jwt", {
       httpOnly: true,
       secure: true,
     });
+    console.log("Cookie cleared.");
 
     res.send(success(200, "User successfully deleted"));
   } catch (e) {
